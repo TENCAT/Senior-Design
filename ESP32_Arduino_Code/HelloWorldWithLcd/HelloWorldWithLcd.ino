@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <WiFi.h>
 
 // Set the LCD address to 0x27 in PCF8574 by NXP and Set to 0x3F in PCF8574A by Ti
 LiquidCrystal_I2C lcd(0x27, 20, 4);
@@ -59,6 +60,12 @@ byte moonChar[] = {
   B00000
 };
 
+const char* ssid     = "America's WIFI";
+const char* password = "Rosebud3";
+const char* host = "192.168.0.18";
+const uint16_t port = 8090;
+int potValue=0;
+
 void setup() {
   lcd.init();
   lcd.backlight();
@@ -85,8 +92,48 @@ void setup() {
   lcd.setCursor(3, 2);
   lcd.print("This is a demo");
 
+  delay(2000);
+  lcd.clear();
+
+    WiFi.begin(ssid, password);
+
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        lcd.clear();
+        lcd.print("Trying to connect");
+    }
+  lcd.clear();
+  lcd.print("Connected");
+
+  delay(2500);
 }
 
 void loop() {
+  WiFiClient client;
 
+  if(!client.connect(host,port)){
+    //do nothing
+    delay(1000);
+    return;
+  }
+
+  client.print("Hello from ESP32!");
+  client.stop();
+  potValue=analogRead(34);
+  lcd.home();
+  lcd.print("Pot reading");
+  lcd.setCursor(0,1);
+  lcd.write(0);
+  lcd.setCursor(1,1);
+  
+  if(potValue >= 2730){
+    lcd.print("L");
+  }
+  else if(potValue <= 1365){
+    lcd.print("R");
+  }
+  else{
+    lcd.print("C");
+  }
+  delay(500);
 }
