@@ -1,7 +1,6 @@
-#This folder is to hold ESP32 programming code.
+# This folder is to hold ESP32 programming code.
 ---
-
-##To Do:
+## To Do:
 ---
 - [ ] Finish LCD board layout
 - [ ] Create functions in seperate file
