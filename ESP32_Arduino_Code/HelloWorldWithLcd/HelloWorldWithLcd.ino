@@ -60,8 +60,6 @@ byte moonChar[] = {
   B00000
 };
 
-const char* ssid     = "America's WIFI";
-const char* password = "Rosebud3";
 const char* host = "192.168.0.18";
 const uint16_t port = 8090;
 int potValue=0;
