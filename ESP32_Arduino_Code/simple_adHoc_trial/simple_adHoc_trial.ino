@@ -27,11 +27,6 @@ void setup() {
   }
  
  
-  /*WiFi.begin("America's WIFI","I<3yOu3thOusand");
-  while(WiFi.status() != WL_CONNECTED){
-    Serial.println("Not connected");
-    delay(500);
-  }*/
 
   IPAddress IP = WiFi.softAPIP();
   Serial.println("AP IP address: ");
