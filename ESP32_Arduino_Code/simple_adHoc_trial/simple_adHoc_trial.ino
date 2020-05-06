@@ -25,11 +25,20 @@ void setup() {
     Serial.println("Finalized the access point");
   }
 
+<<<<<<< HEAD
   WiFi.begin("node_1",password);
   while(WiFi.status() != WL_CONNECTED){
     delay(500);
   }
 
+=======
+  WiFi.begin("node2","wegotthisnow");
+  while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+  }
+ 
+>>>>>>> 3ed3b5f43b46d50e26cd4ceaca090851918a8dc1
  
 
   IPAddress IP = WiFi.softAPIP();
