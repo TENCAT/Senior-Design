@@ -2,44 +2,36 @@
 
 WiFiServer server(7021);
 
-const char* ssid = "node_2";
-const char* password = "Senior Design";
-char c;
+const char* ssid = "ESP32APoint";
+const char* password = "abcdefghijk";
 
 //Function prototypes
 
 void setup() {
-  IPAddress local_IP(10,0,0,1);
-  IPAddress local_sub(255,255,255,0);
  Serial.begin(115200);
   Serial.println();
   
   // Setting the ESP as an access point
   Serial.print("Setting AP (Access Point)…");
   WiFi.disconnect(true);
-  WiFi.mode(WIFI_AP_STA);
-
-  WiFi.softAPConfig(local_IP,local_IP,local_sub);
+  WiFi.mode(WIFI_AP);
 
    if(WiFi.softAP(ssid, password)){
     Serial.println("Finalized the access point");
   }
 
-<<<<<<< HEAD
-  WiFi.begin("node_1",password);
-  while(WiFi.status() != WL_CONNECTED){
-    delay(500);
-  }
-
-=======
   WiFi.begin("node2","wegotthisnow");
   while (WiFi.status() != WL_CONNECTED) {
       delay(500);
       Serial.print(".");
   }
  
->>>>>>> 3ed3b5f43b46d50e26cd4ceaca090851918a8dc1
  
+  /*WiFi.begin("America's WIFI","I<3yOu3thOusand");
+  while(WiFi.status() != WL_CONNECTED){
+    Serial.println("Not connected");
+    delay(500);
+  }*/
 
   IPAddress IP = WiFi.softAPIP();
   Serial.println("AP IP address: ");
@@ -51,21 +43,16 @@ void setup() {
 }
 
 void loop() {
-  WiFiClient sendData;
-  if(!sendData.connect("192.168.4.1",7021)){
-    return;
-  }
   WiFiClient client = server.available();
   if(client){
     while(client.connected()){
       delay(100);
       if(client.available()){
-        c = client.read();
+        char c = client.read();
         Serial.print(c);
-         client.print(c);
-         sendData.print(c);
+        
       }
-     
+      client.print(c);
     }
   }
   client.stop();
