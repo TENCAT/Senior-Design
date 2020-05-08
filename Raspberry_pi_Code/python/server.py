@@ -4,6 +4,7 @@ import socket                               #Import socket module
 import sys
 import select
 import threading
+import time
 
 # create a dictionary of all vehicle sensor variables
 sensors = {
@@ -13,8 +14,9 @@ sensors = {
     "break" : 0.0,
     "headlights" : 0
 }
+possible_commands = "headlights"
 # Keeps track of current command from phone
-command = ""
+cmd = ""
 
 HOST  = ''
 RECV_BUFFER = 4096
@@ -26,13 +28,13 @@ server.bind((HOST, PORT))  #Bind to the port
 server.listen(5)
 
 class ClientThread(threading.Thread):
+    type = ""
     def __init__(self, client, addr):
         threading.Thread.__init__(self)
         self.csocket = client
         print("New connection added: ", addr)
     # Find out if vehicle or mobile connection
     def run(self):
-        print("Connection from : " , addr)
         undefined = 1
         connectiontype = ""
         while undefined:
@@ -50,32 +52,46 @@ class ClientThread(threading.Thread):
                     if device == 'vehicle':
                         undefined = 0
                         connectiontype = 'vehicle'                        
-                        self.vehicle(message_queue)
+                        self.vehicleInit(message_queue)
                     elif device == 'mobile':
                         data = first_message_array[1:]
                         undefined = 0
-                        self.mobile(message_queue)
+                        self.mobileInit(message_queue)
 
-    def vehicle(self, messages):
+    def vehicleInit(self, messages):
+        global vThread
+        vThread = self
+        type = "vehicle"
         print("Connection is a vehicle")
-        print("messages are: ", messages)
         # Message may be pretty long at this point
         # Each new message should be separated by declaration of the sender of the data
         for msg in messages.split():
             message_array = msg.split("/")
-            print(message_array)
             datatype = message_array[1]
             data = message_array[2]
             # Receive input from vehicle and update sensor values
             if datatype in sensors.keys():
+                print("Updating sensor ", datatype, "to ", data)
                 if datatype == "headlights":
                     sensors[datatype] = int(data)
                 else:
                     sensors[datatype] = float(data)
-        print (sensors)
 
-    def mobile(self, messages):
+    def vehicleSend(self, message):
+        print("sending message ", message, " to vehicle")
+        self.csocket.send(message.encode('ascii'))
+
+    def mobileInit(self, messages):
+        global vThread
         print("Connection is a phone")
+        print(messages)
+        for msg in messages.split():
+            print("Received message ", msg, " from Android device")
+            message_array = msg.split("/")
+            datatype = message_array[1]
+            cmd = message_array[2]
+            if 'vThread' in globals():
+                vThread.vehicleSend(msg)
 
 
 while True:
