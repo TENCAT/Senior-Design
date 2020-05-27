@@ -39,10 +39,16 @@ class ClientThread(threading.Thread):
         connectiontype = ""
         while undefined:
             ready = select.select([self.csocket], [], [], 5)
+            while not ready[0]:
+                ready = select.select([self.csocket], [], [], 5)
             message = ""
             if ready[0]:
                 message = self.csocket.recv(4096)
-                message_queue = message.decode('ascii')
+                if not message:
+                    print("disconnected")
+                    break
+                message_queue = message.decode('utf-8')
+                print("received message: ", message_queue)
                 msgs = str.split(message_queue)
                 first_message_array = msgs[0].split("/")
                 # message_array = str.split(message)
@@ -50,12 +56,12 @@ class ClientThread(threading.Thread):
                 if len(first_message_array) >= 2:
                     device = first_message_array[0]
                     if device == 'vehicle':
-                        undefined = 1
+                        undefined = 0
                         connectiontype = 'vehicle'                        
                         self.vehicleInit(message_queue)
                     elif device == 'mobile':
                         data = first_message_array[1:]
-                        undefined = 1
+                        undefined = 0
                         self.mobileInit(message_queue)
 
     def vehicleInit(self, messages):
