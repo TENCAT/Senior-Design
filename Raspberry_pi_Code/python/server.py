@@ -4,17 +4,19 @@ import socket                               #Import socket module
 import sys
 import select
 import threading
+import time
 
 # create a dictionary of all vehicle sensor variables
 sensors = {
-    "speed" : 0.0,
-    "obstacles" : 0.0,
-    "distance" : 0.0,
-    "break" : 0.0,
-    "headlights" : 0
+    "name" : 0,
+    "steering" : 0,
+    "DayTime" : 1,
+    "Distance" : 0,
+    "speed" : 0
 }
+possible_commands = "headlights"
 # Keeps track of current command from phone
-command = ""
+cmd = ""
 
 HOST  = ''
 RECV_BUFFER = 4096
@@ -26,13 +28,13 @@ server.bind((HOST, PORT))  #Bind to the port
 server.listen(5)
 
 class ClientThread(threading.Thread):
+    type = ""
     def __init__(self, client, addr):
         threading.Thread.__init__(self)
         self.csocket = client
         print("New connection added: ", addr)
     # Find out if vehicle or mobile connection
     def run(self):
-        print("Connection from : " , addr)
         undefined = 1
         connectiontype = ""
         while undefined:
@@ -48,34 +50,82 @@ class ClientThread(threading.Thread):
                 if len(first_message_array) >= 2:
                     device = first_message_array[0]
                     if device == 'vehicle':
-                        undefined = 0
+                        undefined = 1
                         connectiontype = 'vehicle'                        
-                        self.vehicle(message_queue)
+                        self.vehicleInit(message_queue)
                     elif device == 'mobile':
                         data = first_message_array[1:]
-                        undefined = 0
-                        self.mobile(message_queue)
+                        undefined = 1
+                        self.mobileInit(message_queue)
 
-    def vehicle(self, messages):
+    def vehicleInit(self, messages):
+        type = "vehicle"
         print("Connection is a vehicle")
-        print("messages are: ", messages)
+        self.vehicleParseMessages(messages)
+        self.receiveLoop()
+
+    def vehicleSend(self, message):
+        print("Sending message ", message, " to vehicle")
+        self.csocket.send(message.encode('ascii'))
+
+    def vehicleParseMessages(self, messages):
+        global vThread
+        vThread = self
         # Message may be pretty long at this point
         # Each new message should be separated by declaration of the sender of the data
         for msg in messages.split():
+            print("Received message ", msg, " from vehicle")
             message_array = msg.split("/")
-            print(message_array)
             datatype = message_array[1]
             data = message_array[2]
             # Receive input from vehicle and update sensor values
             if datatype in sensors.keys():
+                print("Updating sensor ", datatype, "to ", data)
                 if datatype == "headlights":
                     sensors[datatype] = int(data)
                 else:
                     sensors[datatype] = float(data)
-        print (sensors)
 
-    def mobile(self, messages):
+                if 'mThread' in globals():
+                    mThread.mobileSend(msg)
+
+    def receiveLoop(self):
+        while True:
+            ready = select.select([self.csocket], [], [], 5)
+            message = ""
+            if ready[0]:
+                message = self.csocket.recv(4096)
+                message_queue = message.decode('ascii')
+                if type == "vehicle":
+                    self.vehicleParseMessages(message)
+                elif type == "mobile":
+                    self.mobileParseMessages(message)
+
+    def mobileSend(self, message):
+        print("Sending message ", message, " to mobile")
+        self.csocket.send(message.encode('ascii'))
+
+    def mobileParseMessages(self, messages):
+        global vThread
+        global mThread
+        mThread = self
+        for msg in messages.split():
+            print("Received message ", msg, " from Android device")
+            message_array = msg.split("/")
+            datatype = message_array[0]
+            cmd = message_array[1]
+            if cmd == "update": # Update command does not require sending to vehicle
+                for key in sensors:
+                    message = "vehicle/" + key + "/" + str(sensors[key]) + " "
+                    self.mobileSend(message)
+            elif 'vThread' in globals():
+                vThread.vehicleSend(msg)
+
+    def mobileInit(self, messages):
         print("Connection is a phone")
+        type = "mobile"
+        self.mobileParseMessages(messages)
+        self.receiveLoop()
 
 
 while True:
@@ -83,4 +133,3 @@ while True:
     # client.settimeout(30)
     newthread = ClientThread(client, addr)
     newthread.start()
-
