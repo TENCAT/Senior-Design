@@ -61,8 +61,8 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         tvMessages.setText("Connected\n");
-                        output.write("mobile/update");
-                        output.flush();
+//                        output.write("mobile/update");
+//                        output.flush();
                         tvMessages.append("Initiated communication with server\n");
                     }
                 });

@@ -64,6 +64,4 @@
         android:layout_height = "wrap_content"
         android:layout_below = "@+id/timeTV"
         android:textAppearance = "@style/Base.TextAppearance.AppCompat.Medium" />
-
-
 </RelativeLayout>
