@@ -41,13 +41,11 @@ class ClientThread(threading.Thread):
             ready = select.select([self.csocket], [], [], 5)
             while not ready[0]:
                 ready = select.select([self.csocket], [], [], 5)
-            message = ""
             if ready[0]:
-                message = self.csocket.recv(4096)
-                if not message:
-                    print("disconnected")
-                    break
-                message_queue = message.decode('utf-8')
+                # get length of message
+                length_of_message = int.from_bytes(self.csocket.recv(2), byteorder='big')
+                # get message
+                message_queue = self.csocket.recv(length_of_message).decode("UTF-8")
                 print("received message: ", message_queue)
                 msgs = str.split(message_queue)
                 first_message_array = msgs[0].split("/")
@@ -109,7 +107,12 @@ class ClientThread(threading.Thread):
 
     def mobileSend(self, message):
         print("Sending message ", message, " to mobile")
-        self.csocket.send(message.encode('ascii'))
+        #encode the message to UTF-8 format
+        message_to_send = message.encode("UTF-8")
+        #send the length of the data first
+        self.csocket.send(len(message_to_send).to_bytes(2, byteorder='big'))
+        #send the data to the app
+        self.csocket.send(message_to_send)
 
     def mobileParseMessages(self, messages):
         global vThread
@@ -122,7 +125,7 @@ class ClientThread(threading.Thread):
             cmd = message_array[1]
             if cmd == "update": # Update command does not require sending to vehicle
                 for key in sensors:
-                    message = "vehicle/" + key + "/" + str(sensors[key]) + " "
+                    message = "vehicle/" + key + "/" + str(sensors[key])
                     self.mobileSend(message)
             elif 'vThread' in globals():
                 vThread.vehicleSend(msg)
@@ -132,7 +135,6 @@ class ClientThread(threading.Thread):
         type = "mobile"
         self.mobileParseMessages(messages)
         self.receiveLoop()
-
 
 while True:
     client, addr = server.accept()
