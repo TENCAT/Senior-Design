@@ -16,6 +16,6 @@ Objectives:
 - Provide a visual learning experience to those interested
 ---
 This project is made for our Senior Design and independent studies at Kettering University. It is only to be used as a 
-demonstration on how these types of communications based on the constraints the team has encounterd.
+demonstration on how these types of communications based on the constraints the team has encountered.
 
-Last Edit: 4/24/19
+Last Edit: 6/1/20
