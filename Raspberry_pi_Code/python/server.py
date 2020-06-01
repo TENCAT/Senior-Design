@@ -8,17 +8,16 @@ import time
 
 # create a dictionary of all vehicle sensor variables
 sensors = {
-    "name" : 0,
-    "steering" : 0,
+    "steering" : 2,
     "DayTime" : 1,
-    "Distance" : 0,
-    "speed" : 0
+    "Distance" : 100,
+    "speed" : 45
 }
 possible_commands = "headlights"
 # Keeps track of current command from phone
 cmd = ""
 
-HOST  = ''
+HOST  = '192.168.0.13'
 RECV_BUFFER = 4096
 PORT = 20003
 
@@ -124,6 +123,7 @@ class ClientThread(threading.Thread):
             datatype = message_array[0]
             cmd = message_array[1]
             if cmd == "update": # Update command does not require sending to vehicle
+                # while True:
                 for key in sensors:
                     message = "vehicle/" + key + "/" + str(sensors[key])
                     self.mobileSend(message)
