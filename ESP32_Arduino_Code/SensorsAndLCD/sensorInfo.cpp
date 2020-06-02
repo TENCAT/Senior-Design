@@ -2,7 +2,7 @@
 #include "LiquidCrystal_I2C.h"
 #include "sensorInfo.h"
 
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+LiquidCrystal_I2C lcd
 int trigPin = 18;
 int echoPin = 19;
 int button1 = 16;
@@ -69,7 +69,7 @@ byte moonChar[] = {
   B00000
 };
 
-void ScreenSetupFunction(){
+void ScreenSetupFunction(LiquidCrystal_I2C lcd){
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
   pinMode(echoPin, INPUT); // Sets the echoPin as an Input
   pinMode(button1, INPUT);
@@ -94,6 +94,7 @@ void ScreenSetupFunction(){
 
   lcd.setCursor(9, 0); 
   lcd.write(2);
+  lcd.print('hello');
 
   delay(10);
 

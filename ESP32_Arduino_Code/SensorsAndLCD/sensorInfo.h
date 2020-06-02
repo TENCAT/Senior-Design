@@ -3,7 +3,7 @@
 
 
 
-void ScreenSetupFunction();
+void ScreenSetupFunction(LiquidCrystal_I2C lcd);
 
 //Steering
 void SteeringFunction();
