@@ -2,6 +2,7 @@
 #include "LiquidCrystal_I2C.h"
 #include "sensorInfo.h"
 
+LiquidCrystal_I2C lcd
 int trigPin = 18;
 int echoPin = 19;
 int button1 = 16;
@@ -73,7 +74,41 @@ void ScreenSetupFunction(LiquidCrystal_I2C lcd){
   pinMode(echoPin, INPUT); // Sets the echoPin as an Input
   pinMode(button1, INPUT);
   pinMode(button2, INPUT);  
+  
+  Serial.begin(9600);
+  
+  // put your setup code here, to run once:
+  lcd.init();
+  lcd.backlight();
+  lcd.createChar(0, customChar);//Steering
+  lcd.createChar(1, customChar2);//Fire
+  lcd.createChar(2, customChar3); //Distance
+  lcd.createChar(3, moonChar);
+  lcd.createChar(4, sunChar);
+  
+  lcd.home();
+  lcd.write(0);
+  
+  lcd.setCursor(3, 0); 
+  lcd.write(1); 
 
+  lcd.setCursor(9, 0); 
+  lcd.write(2);
+  lcd.print('hello');
+
+  delay(10);
+
+}
+
+//Steering
+void SteeringFunction(){
+  pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
+  pinMode(echoPin, INPUT); // Sets the echoPin as an Input
+  pinMode(button1, INPUT);
+  pinMode(button2, INPUT);  
+  
+  Serial.begin(9600);
+  
   // put your setup code here, to run once:
   lcd.init();
   lcd.backlight();
@@ -93,31 +128,9 @@ void ScreenSetupFunction(LiquidCrystal_I2C lcd){
   lcd.write(2);
 
   delay(10);
+  }
 
-}
-
-//Steering
-void SteeringFunction(LiquidCrystal_I2C lcd){
-  //Steering
-  lcd.setCursor(1, 0);
-  int potValue = map(analogRead(34),0,4095,1,3); 
-  if ((0<potValue)&&(250>potValue)) {
-    SteeringVarible = 0; 
-  }
-  if(potValue==1){
-    lcd.print("R");
-  }
-  else if(potValue==2){
-    lcd.print("S");
-  }
-  else if(potValue==3){
-    lcd.print("L");
-  }
-  
-  delay(10); 
-}
-
-void TimeOfDayFunction(LiquidCrystal_I2C lcd){
+void TimeOfDayFunction(){
 //Time of day
   lcd.setCursor(15, 0);
   int DayTime = analogRead(PhotoCell); 
@@ -126,10 +139,9 @@ void TimeOfDayFunction(LiquidCrystal_I2C lcd){
   } else {
     lcd.write(3);
   }
-  delay(10); 
   }
 
-void SpeedFunction(LiquidCrystal_I2C lcd){
+void SpeedFunction(){
   //Gas and Break
   if (digitalRead(button1)==Pressed) {
     Speed = Speed+1;  
@@ -139,11 +151,6 @@ void SpeedFunction(LiquidCrystal_I2C lcd){
   }
   //If speed becomes negative the LCD gets all funky when you go back to (+) integers 
   //to solve this you need to clear 
-  
-  lcd.setCursor(4, 0);
-  lcd.print(" ");
-  lcd.setCursor(5, 0);
-  lcd.print(" ");
   lcd.setCursor(6, 0);
   lcd.print(" ");
   lcd.setCursor(7, 0);
@@ -158,10 +165,9 @@ void SpeedFunction(LiquidCrystal_I2C lcd){
   }
   lcd.setCursor(4, 0);
   lcd.print(Speed);
-  delay(10); 
   }
 
-int DistanceFunction(LiquidCrystal_I2C lcd){
+int DistanceFunction(){
   //Creates a pulse, which its duration will be used to calculate the distance
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
@@ -184,5 +190,4 @@ int DistanceFunction(LiquidCrystal_I2C lcd){
   
   lcd.setCursor(10, 0);
   lcd.print(distance);
-  delay(100); 
   }
