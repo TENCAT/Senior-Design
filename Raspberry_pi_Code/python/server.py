@@ -97,11 +97,16 @@ class ClientThread(threading.Thread):
             ready = select.select([self.csocket], [], [], 5)
             message = ""
             if ready[0]:
-                message = self.csocket.recv(4096)
-                message_queue = message.decode('ascii')
+                length_of_message = int.from_bytes(self.csocket.recv(2), byteorder='big')
+                message = self.csocket.recv(length_of_message).decode("UTF-8")
+                print("Message: ", message)
+                # message_queue = message.decode("'ascii'")
+                splitMsg = message.split("/")
+                type = splitMsg[0]
                 if type == "vehicle":
                     self.vehicleParseMessages(message)
                 elif type == "mobile":
+                    # print("Message: ", message)
                     self.mobileParseMessages(message)
 
     def mobileSend(self, message):
@@ -123,10 +128,13 @@ class ClientThread(threading.Thread):
             datatype = message_array[0]
             cmd = message_array[1]
             if cmd == "update": # Update command does not require sending to vehicle
-                # while True:
+                message = "";
                 for key in sensors:
-                    message = "vehicle/" + key + "/" + str(sensors[key])
-                    self.mobileSend(message)
+                    current_msg ="vehicle/" + key + "/" + str(sensors[key]) + " "
+                    message += current_msg
+                self.mobileSend(message)
+            # elif cmd == "close":
+                #close the socket
             elif 'vThread' in globals():
                 vThread.vehicleSend(msg)
 
