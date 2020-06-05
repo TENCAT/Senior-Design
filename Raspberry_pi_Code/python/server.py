@@ -1,5 +1,3 @@
-#Name: Rachel Brundage
-
 import socket                               #Import socket module
 import sys
 import select
@@ -17,7 +15,7 @@ possible_commands = "headlights"
 # Keeps track of current command from phone
 cmd = ""
 
-HOST  = '192.168.0.13'
+HOST  = '10.145.20.100'
 RECV_BUFFER = 4096
 PORT = 20003
 
@@ -27,7 +25,8 @@ server.bind((HOST, PORT))  #Bind to the port
 server.listen(5)
 
 class ClientThread(threading.Thread):
-    type = ""
+    connectiontype = ""
+    connected = 1 # Keep track of when Thread should run - terminates on socket close
     def __init__(self, client, addr):
         threading.Thread.__init__(self)
         self.csocket = client
@@ -45,6 +44,8 @@ class ClientThread(threading.Thread):
                 length_of_message = int.from_bytes(self.csocket.recv(2), byteorder='big')
                 # get message
                 message_queue = self.csocket.recv(length_of_message).decode("UTF-8")
+                if len(message_queue) == 0:
+                    continue
                 print("received message: ", message_queue)
                 msgs = str.split(message_queue)
                 first_message_array = msgs[0].split("/")
@@ -53,8 +54,7 @@ class ClientThread(threading.Thread):
                 if len(first_message_array) >= 2:
                     device = first_message_array[0]
                     if device == 'vehicle':
-                        undefined = 0
-                        connectiontype = 'vehicle'                        
+                        undefined = 0                      
                         self.vehicleInit(message_queue)
                     elif device == 'mobile':
                         data = first_message_array[1:]
@@ -62,7 +62,7 @@ class ClientThread(threading.Thread):
                         self.mobileInit(message_queue)
 
     def vehicleInit(self, messages):
-        type = "vehicle"
+        self.connectiontype = "vehicle"
         print("Connection is a vehicle")
         self.vehicleParseMessages(messages)
         self.receiveLoop()
@@ -93,20 +93,17 @@ class ClientThread(threading.Thread):
                     mThread.mobileSend(msg)
 
     def receiveLoop(self):
-        while True:
+        while self.connected:
             ready = select.select([self.csocket], [], [], 5)
             message = ""
             if ready[0]:
                 length_of_message = int.from_bytes(self.csocket.recv(2), byteorder='big')
                 message = self.csocket.recv(length_of_message).decode("UTF-8")
                 print("Message: ", message)
-                # message_queue = message.decode("'ascii'")
                 splitMsg = message.split("/")
-                type = splitMsg[0]
-                if type == "vehicle":
+                if self.connectiontype == "vehicle":
                     self.vehicleParseMessages(message)
-                elif type == "mobile":
-                    # print("Message: ", message)
+                elif self.connectiontype == "mobile":
                     self.mobileParseMessages(message)
 
     def mobileSend(self, message):
@@ -133,14 +130,18 @@ class ClientThread(threading.Thread):
                     current_msg ="vehicle/" + key + "/" + str(sensors[key]) + " "
                     message += current_msg
                 self.mobileSend(message)
-            # elif cmd == "close":
-                #close the socket
+            elif cmd == "close":
+                print("Closing socket")
+                self.csocket.shutdown(socket.SHUT_RDWR)
+                self.csocket.close()
+                # Close the thread
+                self.connected = 0
             elif 'vThread' in globals():
                 vThread.vehicleSend(msg)
 
     def mobileInit(self, messages):
         print("Connection is a phone")
-        type = "mobile"
+        self.connectiontype = "mobile"
         self.mobileParseMessages(messages)
         self.receiveLoop()
 
