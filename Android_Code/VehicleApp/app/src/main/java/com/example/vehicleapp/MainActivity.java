@@ -62,8 +62,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-//                    dout.close();
-//                    din.close();
+                    dout.close();
+                    din.close();
                     socket.close();
                 } catch (IOException e) {
                     e.printStackTrace();
