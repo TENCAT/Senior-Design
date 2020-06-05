@@ -46,7 +46,6 @@ class ClientThread(threading.Thread):
                 message_queue = self.csocket.recv(length_of_message).decode("UTF-8")
                 if len(message_queue) == 0:
                     continue
-                print("received message: ", message_queue)
                 msgs = str.split(message_queue)
                 first_message_array = msgs[0].split("/")
                 # message_array = str.split(message)
