@@ -15,7 +15,7 @@ possible_commands = "headlights"
 # Keeps track of current command from phone
 cmd = ""
 
-HOST  = '10.145.20.100'
+HOST  = '192.168.0.13'
 RECV_BUFFER = 4096
 PORT = 20003
 
