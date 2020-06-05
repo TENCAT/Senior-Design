@@ -15,7 +15,7 @@ possible_commands = "headlights"
 # Keeps track of current command from phone
 cmd = ""
 
-HOST  = '192.168.0.13'
+HOST  = '10.145.20.100'
 RECV_BUFFER = 4096
 PORT = 20003
 
@@ -68,7 +68,12 @@ class ClientThread(threading.Thread):
 
     def vehicleSend(self, message):
         print("Sending message ", message, " to vehicle")
-        self.csocket.send(message.encode('ascii'))
+        #encode the message to UTF-8 format
+        message_to_send = message.encode("UTF-8")
+        #send the length of the data first
+        self.csocket.send(len(message_to_send).to_bytes(2, byteorder='big'))
+        #send the data to the app
+        self.csocket.send(message_to_send)
 
     def vehicleParseMessages(self, messages):
         global vThread
@@ -98,6 +103,8 @@ class ClientThread(threading.Thread):
             if ready[0]:
                 length_of_message = int.from_bytes(self.csocket.recv(2), byteorder='big')
                 message = self.csocket.recv(length_of_message).decode("UTF-8")
+                if len(message) == 0:
+                    continue
                 print("Message: ", message)
                 splitMsg = message.split("/")
                 if self.connectiontype == "vehicle":
@@ -135,7 +142,7 @@ class ClientThread(threading.Thread):
                 self.csocket.close()
                 # Close the thread
                 self.connected = 0
-            elif 'vThread' in globals():
+            elif 'vcleThread' in globals():
                 vThread.vehicleSend(msg)
 
     def mobileInit(self, messages):
