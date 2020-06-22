@@ -15,9 +15,9 @@ possible_commands = "headlights"
 # Keeps track of current command from phone
 cmd = ""
 
-HOST  = '10.145.20.100'
+HOST  = '' # Enter your IP address here
 RECV_BUFFER = 4096
-PORT = 20003
+PORT = 20003 # Enter your port number here
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  #Create a socket object
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
