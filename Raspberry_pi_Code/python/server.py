@@ -4,6 +4,10 @@ import select
 import threading
 import time
 
+# TODO:
+#   -> Handle losing socket connection
+
+
 # create a dictionary of all vehicle sensor variables
 sensors = {
     "steering" : 2,
@@ -36,29 +40,38 @@ class ClientThread(threading.Thread):
         undefined = 1
         connectiontype = ""
         while undefined:
-            ready = select.select([self.csocket], [], [], 5)
-            while not ready[0]:
+            try:
                 ready = select.select([self.csocket], [], [], 5)
-            if ready[0]:
-                # get length of message
-                length_of_message = int.from_bytes(self.csocket.recv(2), byteorder='big')
-                # get message
-                message_queue = self.csocket.recv(length_of_message).decode("UTF-8")
-                if len(message_queue) == 0:
-                    continue
-                msgs = str.split(message_queue)
-                first_message_array = msgs[0].split("/")
-                # message_array = str.split(message)
-                # Message must at least contain the device name and the message data
-                if len(first_message_array) >= 2:
-                    device = first_message_array[0]
-                    if device == 'vehicle':
-                        undefined = 0                      
-                        self.vehicleInit(message_queue)
-                    elif device == 'mobile':
-                        data = first_message_array[1:]
-                        undefined = 0
-                        self.mobileInit(message_queue)
+                while not ready[0]:
+                    ready = select.select([self.csocket], [], [], 5)
+
+                if ready[0]:
+                    # get length of message
+                    length_of_message = int.from_bytes(self.csocket.recv(2), byteorder='big')
+                    # get message
+                    message_queue = self.csocket.recv(length_of_message).decode("UTF-8")
+                    if len(message_queue) == 0:
+                        continue
+                    msgs = str.split(message_queue)
+                    first_message_array = msgs[0].split("/")
+                    # message_array = str.split(message)
+                    # Message must at least contain the device name and the message data
+                    if len(first_message_array) >= 2:
+                        device = first_message_array[0]
+                        if device == 'vehicle':
+                            undefined = 0                      
+                            self.vehicleInit(message_queue)
+                        elif device == 'mobile':
+                            data = first_message_array[1:]
+                            undefined = 0
+                            self.mobileInit(message_queue)
+
+            except select.error:
+                print("Client disconnected")
+                self.csocket.close()
+                # Close the thread
+                self.connected = 0
+                break
 
     def vehicleInit(self, messages):
         self.connectiontype = "vehicle"
@@ -79,7 +92,7 @@ class ClientThread(threading.Thread):
         global vThread
         vThread = self
         # Message may be pretty long at this point
-        # Each new message should be separated by declaration of the sender of the data
+        # Each new message should be separated by type
         for msg in messages.split():
             print("Received message ", msg, " from vehicle")
             message_array = msg.split("/")
@@ -93,24 +106,28 @@ class ClientThread(threading.Thread):
                 else:
                     sensors[datatype] = float(data)
 
-                if 'mThread' in globals():
-                    mThread.mobileSend(msg)
-
     def receiveLoop(self):
         while self.connected:
-            ready = select.select([self.csocket], [], [], 5)
-            message = ""
-            if ready[0]:
-                length_of_message = int.from_bytes(self.csocket.recv(2), byteorder='big')
-                message = self.csocket.recv(length_of_message).decode("UTF-8")
-                if len(message) == 0:
-                    continue
-                print("Message: ", message)
-                splitMsg = message.split("/")
-                if self.connectiontype == "vehicle":
-                    self.vehicleParseMessages(message)
-                elif self.connectiontype == "mobile":
-                    self.mobileParseMessages(message)
+            try:
+                ready = select.select([self.csocket], [], [], 5)
+                message = ""
+                if ready[0]:
+                    length_of_message = int.from_bytes(self.csocket.recv(2), byteorder='big')
+                    message = self.csocket.recv(length_of_message).decode("UTF-8")
+                    if len(message) == 0:
+                        continue
+                    print("Message: ", message)
+                    splitMsg = message.split("/")
+                    if self.connectiontype == "vehicle":
+                        self.vehicleParseMessages(message)
+                    elif self.connectiontype == "mobile":
+                        self.mobileParseMessages(message)
+            except select.error:
+                print(self.connectiontype.title(), " client disconnected");
+                self.csocket.close()
+                # Close the thread
+                self.connected = 0
+                break
 
     def mobileSend(self, message):
         print("Sending message ", message, " to mobile")
@@ -130,10 +147,12 @@ class ClientThread(threading.Thread):
             message_array = msg.split("/")
             datatype = message_array[0]
             cmd = message_array[1]
-            if cmd == "update": # Update command does not require sending to vehicle
+            # Update command does not require sending to vehicle
+            if cmd == "update": 
                 message = "";
                 for key in sensors:
-                    current_msg ="vehicle/" + key + "/" + str(sensors[key]) + " "
+                    current_msg ="vehicle/" + key + "/" \
+                                    + str(sensors[key]) + " "
                     message += current_msg
                 self.mobileSend(message)
             elif cmd == "close":
