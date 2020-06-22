@@ -4,10 +4,6 @@ import select
 import threading
 import time
 
-# TODO:
-#   -> Handle losing socket connection
-
-
 # create a dictionary of all vehicle sensor variables
 sensors = {
     "steering" : 2,
