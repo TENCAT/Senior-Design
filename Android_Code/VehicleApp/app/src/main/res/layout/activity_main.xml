@@ -4,19 +4,20 @@
     android:layout_width = "match_parent"
     android:layout_height = "match_parent"
     android:layout_margin = "16dp"
+    android:textColor = "@color/black"
     tools:context = ".MainActivity">
     <EditText
         android:id = "@+id/etIP"
         android:layout_width = "match_parent"
         android:layout_height = "wrap_content"
-        android:hint = "IP-Address"
-        android:inputType = "text" />
+        android:hint = "Server's IP Address"
+        android:inputType = "text"/>
     <EditText
         android:id = "@+id/etPort"
         android:layout_width = "match_parent"
         android:layout_height = "wrap_content"
         android:layout_below = "@+id/etIP"
-        android:hint = "Port No"
+        android:hint = "Server's Port No"
         android:inputType = "number" />
     <Button
         android:id = "@+id/connectBtn"
@@ -32,9 +33,9 @@
         android:id="@+id/tvMessages"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/btnConnect"
         android:layout_marginBottom="0dp"
         android:inputType="textMultiLine"
+        android:textColor = "@color/black"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
 
     <TextView
@@ -44,6 +45,7 @@
         android:layout_below="@+id/tvMessages"
         android:layout_marginBottom="0dp"
         android:inputType="textMultiLine"
+        android:textColor = "@color/black"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
 
     <TextView
@@ -51,6 +53,7 @@
         android:layout_width = "match_parent"
         android:layout_height = "wrap_content"
         android:layout_below = "@+id/speedValTV"
+        android:textColor = "@color/black"
         android:textAppearance = "@style/Base.TextAppearance.AppCompat.Medium" />
 
     <TextView
@@ -58,6 +61,7 @@
         android:layout_width = "match_parent"
         android:layout_height = "wrap_content"
         android:layout_below = "@+id/directionTV"
+        android:textColor = "@color/black"
         android:textAppearance = "@style/Base.TextAppearance.AppCompat.Medium" />
 
     <TextView
@@ -65,6 +69,7 @@
         android:layout_width = "match_parent"
         android:layout_height = "wrap_content"
         android:layout_below = "@+id/timeTV"
+        android:textColor = "@color/black"
         android:textAppearance = "@style/Base.TextAppearance.AppCompat.Medium" />
 
     <Button
